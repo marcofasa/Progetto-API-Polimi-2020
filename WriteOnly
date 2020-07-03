@@ -9,9 +9,18 @@ void main(void) {
     buffer = (char *)malloc(bufsize * sizeof(char));
     size_t bufsize = 32;
     size_t command;
+    int i;
+    int sline;
+    int fline;
+    char order;
+    
+    
     while (getline(&buffer,&bufsize,stdin)!='q'){
         command = getline(&buffer,&bufsize,stdin);
-        while (command[i]!=''
+        sline=command[0];
+        fline=command[2];
+        for (
+        }
     }
 
 }                
