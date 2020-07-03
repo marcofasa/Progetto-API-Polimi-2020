@@ -2,21 +2,26 @@
 #include <stdio.h>
 
 void main(void) {
+    char data[20][40];
+    char string[40];
     char *buffer;
     buffer = (char *)malloc(bufsize * sizeof(char));
     size_t bufsize = 32;
     size_t command;
-    int i;
+    int i,j,k,len;
     int sline;
     int fline;
-    char order;
     
     
     while (getline(&buffer,&bufsize,stdin)!='q'){
         command = getline(&buffer,&bufsize,stdin);
         sline=command[0];
         fline=command[2];
-        for (
+        for (i=sline, sline+1, i++){
+          string = getline(&buffer,&bufsize,stdin);
+          len = strlen(string) - 1;
+           for(k=0, len, k++){
+            Data[i][k]=string[k];}}
         }
     }
 
