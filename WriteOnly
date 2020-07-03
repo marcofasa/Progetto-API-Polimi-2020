@@ -17,7 +17,7 @@ void main(void) {
         command = getline(&buffer,&bufsize,stdin);
         sline=command[0];
         fline=command[2];
-        for (i=sline, sline+1, i++){
+        for (i=sline, fline+1, i++){
           string = getline(&buffer,&bufsize,stdin);
           len = strlen(string) - 1;
            for(k=0, len, k++){
