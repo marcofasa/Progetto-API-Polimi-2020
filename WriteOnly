@@ -1,0 +1,17 @@
+#include <stdlib.h>
+#include <stdio.h>
+
+
+#define FILENAME "file.txt"
+
+void main(void) {
+    char *buffer;
+    buffer = (char *)malloc(bufsize * sizeof(char));
+    size_t bufsize = 32;
+    size_t command;
+    while (getline(&buffer,&bufsize,stdin)!='q'){
+        command = getline(&buffer,&bufsize,stdin);
+        while (command[i]!=''
+    }
+
+}                
