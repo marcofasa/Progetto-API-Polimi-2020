@@ -9,18 +9,13 @@
 
 int main(void) {
     FILE *fp;
-    char data[20][40];
-    char string[40];
     char **array;
     size_t bufsize = 32;
     array = malloc(bufsize * sizeof(char*));
     char *buffer=NULL;
-    char value;
     buffer = (char *) malloc(bufsize * sizeof(char));
     size_t command;
-    int i=0, j, k, len;
-    int sline;
-    int fline;
+    int i=0;
     char eof[]="q";
 
     fp=fopen("prova.txt", "rt");
