@@ -2,10 +2,16 @@
 #include <stdio.h>
 #include <string.h>
 
- void pLine(const char *ptr)            {         
+ void pLine(const char *ptr){ 
+    ptr= ptr+2;        
     for( ; *ptr!='\0'; ++ptr)        
     printf("%c", *ptr);        
-}         
+}
+
+ void GetOrder(const char *ptr){
+    printf("%c\n", *ptr);
+ }
+
 
 int main(void) {
     FILE *fp;
@@ -21,13 +27,13 @@ int main(void) {
     fp=fopen("prova.txt", "rt");
 
     while ((getline(&buffer, &bufsize, fp))) {
-        printf("%s", buffer);
         array[i] = malloc(strlen(buffer) + 1);
         strcpy(array[i], buffer);
-        if (strcmp(array[i],eof)==0) return 0;
+        if (strcmp(array[i],eof)==0) break;
         pLine(array[i]);
         i++;
     }
+
     return 0;
 
 }
