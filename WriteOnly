@@ -1,28 +1,38 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-void main(void) {
+ void pLine(const char *ptr)            {         
+    for( ; *ptr!='\0'; ++ptr)        
+    printf("%c", *ptr);        
+}         
+
+int main(void) {
+    FILE *fp;
     char data[20][40];
     char string[40];
-    char *buffer;
-    buffer = (char *)malloc(bufsize * sizeof(char));
+    char **array;
     size_t bufsize = 32;
+    array = malloc(bufsize * sizeof(char*));
+    char *buffer=NULL;
+    char value;
+    buffer = (char *) malloc(bufsize * sizeof(char));
     size_t command;
-    int i,j,k,len;
+    int i=0, j, k, len;
     int sline;
     int fline;
-    
-    
-    while (getline(&buffer,&bufsize,stdin)!='q'){
-        command = getline(&buffer,&bufsize,stdin);
-        sline=command[0];
-        fline=command[2];
-        for (i=sline, fline+1, i++){
-          string = getline(&buffer,&bufsize,stdin);
-          len = strlen(string) - 1;
-           for(k=0, len, k++){
-            Data[i][k]=string[k];}}
-        }
-    }
+    char eof[]="q";
 
-}                
+    fp=fopen("prova.txt", "rt");
+
+    while ((getline(&buffer, &bufsize, fp))) {
+        printf("%s", buffer);
+        array[i] = malloc(strlen(buffer) + 1);
+        strcpy(array[i], buffer);
+        if (strcmp(array[i],eof)==0) return 0;
+        pLine(array[i]);
+        i++;
+    }
+    return 0;
+
+}
