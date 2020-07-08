@@ -9,7 +9,8 @@ char par;
     }cmd;
 
  void change(cmd comando){
-   printf("changee da %d a %d\n", comando.p1,comando.p2);
+   printf("change da %d a %d\n", comando.p1,comando.p2);
+   
  }
  void undo(cmd comando){
    printf("undo da %d\n", comando.p1);
@@ -52,7 +53,7 @@ char par;
  }
 
 
- void interpretor(cmd comando){
+ void interpreter(cmd comando,const char *ptr){
     
     if (comando.par=='c')
        change(comando);
@@ -81,9 +82,9 @@ int main(void) {
 
  do {
         istruzione=GetOrder(fp);
-        interpretor(istruzione);
+        interpreter(istruzione,array[0]);
     }while(istruzione.par!=0);
-    
+
   
   return 0;
 
