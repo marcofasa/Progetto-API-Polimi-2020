@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#define MAX_STRING_SIZE 1024
 
  typedef struct comando{
 int p1;
@@ -8,9 +9,21 @@ int p2;
 char par;
     }cmd;
 
- void change(cmd comando){
-   printf("change da %d a %d\n", comando.p1,comando.p2);
-   
+ void change(cmd comando, const char arr[10][MAX_STRING_SIZE], FILE *fp){
+    size_t bufsize = 32;
+    char *buffer=NULL;
+    buffer = (char *) malloc(bufsize * sizeof(char));
+    int i=comando.p1, k=comando.p2;
+    printf("change da %d a %d\n", comando.p1,comando.p2);
+    char eof[]="q";
+
+    while(i<=k){
+      getline(&buffer, &bufsize, fp);
+      if (strcmp(buffer,eof)==0) break;
+      strcpy(arr[i], buffer);
+      //printf("%s", arr[i] );
+      i++;
+    }
  }
  void undo(cmd comando){
    printf("undo da %d\n", comando.p1);
@@ -20,8 +33,15 @@ char par;
  }
 
 
- void print(cmd comando){ 
-    printf("print da %d a %d\n", comando.p1, comando.p2);   
+ void print(cmd comando, const char arr[10][MAX_STRING_SIZE]){ 
+   int i=comando.p1, k=comando.p2;
+   printf("print da %d a %d\n", comando.p1, comando.p2);
+    while(i<=k){
+
+      printf("%s", arr[i]);
+      i++;
+    }
+      
 }
 
  cmd GetOrder(FILE *fp){
@@ -53,24 +73,24 @@ char par;
  }
 
 
- void interpreter(cmd comando,const char *ptr){
+ void interpreter(cmd comando,const char arr[10][MAX_STRING_SIZE], FILE *fp){
     
     if (comando.par=='c')
-       change(comando);
+      
+       change(comando,arr,fp);
     else if (comando.par=='u')
        undo(comando);
     else if (comando.par=='r')
       redo(comando);
     else if (comando.par=='p')
-      print(comando);
+      print(comando,arr);
  }
 
 
 int main(void) {
     FILE *fp;
-    char **array;
+    char array[10][MAX_STRING_SIZE];
     size_t bufsize = 32;
-    array = malloc(bufsize * sizeof(char*));
     char *buffer=NULL;
     buffer = (char *) malloc(bufsize * sizeof(char));
     int i=0;
@@ -82,9 +102,8 @@ int main(void) {
 
  do {
         istruzione=GetOrder(fp);
-        interpreter(istruzione,array[0]);
+        interpreter(istruzione,array,fp);
     }while(istruzione.par!=0);
-
   
   return 0;
 
