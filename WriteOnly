@@ -9,19 +9,18 @@ int p2;
 char par;
     }cmd;
 
- void change(cmd comando, const char arr[10][MAX_STRING_SIZE], FILE *fp){
+ void change(cmd comando, const char arr[50][MAX_STRING_SIZE], FILE *fp){
     size_t bufsize = 32;
     char *buffer=NULL;
     buffer = (char *) malloc(bufsize * sizeof(char));
     int i=comando.p1, k=comando.p2;
-    printf("change da %d a %d\n", comando.p1,comando.p2);
+    //printf("change da %d a %d\n", comando.p1,comando.p2);
     char eof[]="q";
 
     while(i<=k){
       getline(&buffer, &bufsize, fp);
       if (strcmp(buffer,eof)==0) break;
       strcpy(arr[i], buffer);
-      //printf("%s", arr[i] );
       i++;
     }
  }
@@ -35,13 +34,12 @@ char par;
 
  void print(cmd comando, const char arr[10][MAX_STRING_SIZE]){ 
    int i=comando.p1, k=comando.p2;
-   printf("print da %d a %d\n", comando.p1, comando.p2);
+   //printf("print da %d a %d\n", comando.p1, comando.p2);
+   if (comando.p1==0) printf(".");
     while(i<=k){
-
       printf("%s", arr[i]);
       i++;
     }
-      
 }
 
  cmd GetOrder(FILE *fp){
@@ -55,15 +53,22 @@ char par;
     string = malloc(strlen(buffer) + 1);
     strcpy(string, buffer);
     start= string[0];
-    if (string[0]=='q') {
+    char skip[]="q";
+
+    if (string==skip) {
       istr.par=0;
     }
+    if (string[0]=='.') {
+      istr.par=string[0];
+      }
     if (string[1]== 'u'){ //printf("undo");
          istr.p1=atoi(&string[0]);
-         istr.par=string[1];}
+         istr.par=string[1];
+         }
     else if (string[1]=='r') {//printf("redo");
          istr.p1=atoi(&string[0]);
-         istr.par=string[1];}
+         istr.par=string[1];
+         }
     else {
       istr.p1=atoi(&string[0]);
       istr.p2=atoi(&string[2]);
@@ -73,10 +78,9 @@ char par;
  }
 
 
- void interpreter(cmd comando,const char arr[10][MAX_STRING_SIZE], FILE *fp){
+ void interpreter(cmd comando,const char arr[50][MAX_STRING_SIZE], FILE *fp){
     
     if (comando.par=='c')
-      
        change(comando,arr,fp);
     else if (comando.par=='u')
        undo(comando);
@@ -84,26 +88,32 @@ char par;
       redo(comando);
     else if (comando.par=='p')
       print(comando,arr);
+    
  }
 
 
 int main(void) {
     FILE *fp;
-    char array[10][MAX_STRING_SIZE];
+    char array[50][MAX_STRING_SIZE];
     size_t bufsize = 32;
     char *buffer=NULL;
     buffer = (char *) malloc(bufsize * sizeof(char));
     int i=0;
     char eof[]="q";
-
-  cmd istruzione;
+    char skip[]=".";
+    cmd istruzione;
+    
 
     fp=fopen("prova.txt", "rt");
 
- do {
+    istruzione=GetOrder(fp);
+    interpreter(istruzione,array,fp);
+
+ while(istruzione.par!=0){
         istruzione=GetOrder(fp);
         interpreter(istruzione,array,fp);
-    }while(istruzione.par!=0);
+        istruzione.par='z';
+    }
   
   return 0;
 
