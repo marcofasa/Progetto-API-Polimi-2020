@@ -1,22 +1,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#define H 50
+#define H 30
 #define MAX_STRING_SIZE 1024
 
 typedef struct comando{
-    int p1;
-    int p2;
+    long int p1;
+    long int p2;
     char par;
 }cmd;
 
 void change(cmd comando, char arr[H][MAX_STRING_SIZE], FILE *fp){
     size_t bufsize = 1024;
-    char *buffer=NULL;
+    char *buffer;
     buffer = (char *) malloc(bufsize * sizeof(char));
-    int i=comando.p1, k=comando.p2;
+    long int i=comando.p1, k=comando.p2;
     //printf("change da %d a %d\n", comando.p1,comando.p2);
-    char eof[]="q";
+    char eof[2]="q";
 
     while(i<=k){
         getline(&buffer, &bufsize, fp);
@@ -24,17 +24,18 @@ void change(cmd comando, char arr[H][MAX_STRING_SIZE], FILE *fp){
         strcpy(arr[i], buffer);
         i++;
     }
+
 }
 void undo(cmd comando){
-    printf("undo da %d\n", comando.p1);
+    //printf("undo da %d\n", comando.p1);
 }
 void redo(cmd comando){
-    printf("redo da %d\n", comando.p1);
+    //printf("redo da %d\n", comando.p1);
 }
 
 
 void print(cmd comando, const char arr[H][MAX_STRING_SIZE]){
-    int i=comando.p1, k=comando.p2;
+    long int i=comando.p1, k=comando.p2;
     //printf("print da %d a %d\n", comando.p1, comando.p2);
     while(i<=k){
         if (i==0) {
@@ -48,17 +49,17 @@ void print(cmd comando, const char arr[H][MAX_STRING_SIZE]){
 }
 
 cmd GetOrder(FILE *fp){
-    size_t bufsize = 32;
+    size_t bufsize = 1024;
     char *buffer=NULL;
     char *string;
-    char start,finish,order;
     cmd istr;
 
     getline(&buffer, &bufsize, fp);
-    string = malloc(strlen(buffer) + 1);
+    string = malloc(strlen(buffer)*sizeof(char) + 1);
     strcpy(string, buffer);
+    free(buffer);
     int i=0,j=0,k=0;
-    char value1[5]= { NULL },value2[5]= { NULL };
+    char value1[5],value2[5];
 
     while(1) {
         if (string[k] == 'c' || string[k] == 'p' || string[k] == 'r' || string[k] == 'u' || string[k] == 'd' ||
@@ -72,11 +73,11 @@ cmd GetOrder(FILE *fp){
     if (istr.par=='.'||istr.par=='q') return istr;
 
 
-    if (istr.par == 'u'){ //printf("undo");
+    if (istr.par == 'u'){
         istr.p1=atoi(&string[0]);
         istr.par=string[1];
     }
-    else if (istr.par =='r') {//printf("redo");
+    else if (istr.par =='r') {
         istr.p1=atoi(&string[0]);
         istr.par=string[1];
     }
@@ -86,6 +87,7 @@ cmd GetOrder(FILE *fp){
             value1[i]=string[i];
             i++;
         }
+        value1[i]='\0';
 
         while (string[i]!=istr.par){
             i++;
@@ -93,6 +95,7 @@ cmd GetOrder(FILE *fp){
             value2[j]=string[i];
             j++;
         }
+        value2[j]='\0';
 
         istr.p1=atoi(value1);
         istr.p2=atoi(value2);
@@ -118,9 +121,6 @@ void interpreter(cmd comando, char arr[H][MAX_STRING_SIZE], FILE *fp){
 int main(void) {
     FILE *fp;
     char array[H][MAX_STRING_SIZE];
-    size_t bufsize = 1024;
-    char *buffer=NULL;
-    buffer = (char *) malloc(bufsize * sizeof(char));
     cmd istruzione;
 
 
@@ -132,6 +132,7 @@ int main(void) {
         interpreter(istruzione,array,fp);
         if (istruzione.par=='q') break;
     }
+
 
 
     return 0;
