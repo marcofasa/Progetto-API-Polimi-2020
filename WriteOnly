@@ -4,13 +4,15 @@
 #define H 30
 #define MAX_STRING_SIZE 1024
 
+char array[H][MAX_STRING_SIZE];
+
 typedef struct comando{
     long int p1;
     long int p2;
     char par;
 }cmd;
 
-void change(cmd comando, char arr[H][MAX_STRING_SIZE], FILE *fp){
+void change(cmd comando, FILE *fp){
     size_t bufsize = 1024;
     char *buffer;
     buffer = (char *) malloc(bufsize * sizeof(char));
@@ -21,7 +23,7 @@ void change(cmd comando, char arr[H][MAX_STRING_SIZE], FILE *fp){
     while(i<=k){
         getline(&buffer, &bufsize, fp);
         if (strcmp(buffer,eof)==0) break;
-        strcpy(arr[i], buffer);
+        strcpy(array[i], buffer);
         i++;
     }
 
@@ -34,7 +36,7 @@ void redo(cmd comando){
 }
 
 
-void print(cmd comando, const char arr[H][MAX_STRING_SIZE]){
+void print(cmd comando){
     long int i=comando.p1, k=comando.p2;
     //printf("print da %d a %d\n", comando.p1, comando.p2);
     while(i<=k){
@@ -43,7 +45,7 @@ void print(cmd comando, const char arr[H][MAX_STRING_SIZE]){
             i++;
             continue;
         }
-        printf("%s", arr[i]);
+        printf("%s", array[i]);
         i++;
     }
 }
@@ -104,24 +106,24 @@ cmd GetOrder(FILE *fp){
 }
 
 
-void interpreter(cmd comando, char arr[H][MAX_STRING_SIZE], FILE *fp){
+void interpreter(cmd comando, FILE *fp){
 
     if (comando.par=='c')
-        change(comando,arr,fp);
+        change(comando,fp);
     else if (comando.par=='u')
         undo(comando);
     else if (comando.par=='r')
         redo(comando);
     else if (comando.par=='p')
-        print(comando,arr);
+        print(comando);
 
 }
 
 
-int main(void) {
+int main() {
     FILE *fp;
-    char array[H][MAX_STRING_SIZE];
     cmd istruzione;
+    int i;
 
 
     fp=fopen("prova.txt", "rt");
@@ -129,11 +131,11 @@ int main(void) {
 
     while(1){
         istruzione=GetOrder(fp);
-        interpreter(istruzione,array,fp);
-        if (istruzione.par=='q') break;
+        interpreter(istruzione,fp);
+        if (istruzione.par=='q') {
+            break;
+        }
     }
-
-
 
     return 0;
 }
