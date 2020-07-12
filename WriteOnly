@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #define H 30
-#define MAX_STRING_SIZE 1024
-
-char array[H][MAX_STRING_SIZE];
 
 typedef struct comando{
     long int p1;
@@ -12,7 +9,51 @@ typedef struct comando{
     char par;
 }cmd;
 
-void change(cmd comando, FILE *fp){
+char ** Create2D(ssize_t Strings)
+{
+    int i;
+    char **a = {0};
+    a = calloc(Strings, sizeof(char *));
+    for(i=0;i<Strings; i++)
+    {
+        a[i] = calloc(1024, 1);
+    }
+    return a;
+}
+
+char ** Reallocation2D(char ** a, size_t dim){
+    int i;
+    char **b = {0};
+    b = calloc(dim*2, sizeof(char *));
+    for(i=0;i<dim*2; i++)
+    {
+        b[i] = calloc(1024, 1);
+    }
+    for(i=0;i<dim;i++){
+        strcpy(b[i],a[i]);
+    }
+
+    for(i=0;i<dim; i++)
+    {
+        if(a[i]) free(a[i]);
+    }
+
+    free(a);
+
+    return b;
+}
+
+void free2D(char ** a, ssize_t numStrings)
+{
+    int i;
+    for(i=0;i<numStrings; i++)
+    {
+        if(a[i]) free(a[i]);
+    }
+    free(a);
+}
+
+void change(cmd comando, char **array, FILE *fp){
     size_t bufsize = 1024;
     char *buffer;
     buffer = (char *) malloc(bufsize * sizeof(char));
@@ -36,7 +77,7 @@ void redo(cmd comando){
 }
 
 
-void print(cmd comando){
+void print(cmd comando,char** array){
     long int i=comando.p1, k=comando.p2;
     //printf("print da %d a %d\n", comando.p1, comando.p2);
     while(i<=k){
@@ -106,16 +147,16 @@ cmd GetOrder(FILE *fp){
 }
 
 
-void interpreter(cmd comando, FILE *fp){
+void interpreter(cmd comando,char* ar, FILE *fp){
 
     if (comando.par=='c')
-        change(comando,fp);
+        change(comando,ar,fp);
     else if (comando.par=='u')
         undo(comando);
     else if (comando.par=='r')
         redo(comando);
     else if (comando.par=='p')
-        print(comando);
+        print(comando,ar);
 
 }
 
@@ -125,17 +166,26 @@ int main() {
     cmd istruzione;
     int i;
 
+    char **Array = {0};
+    Array = Create2D(H);
 
     fp=fopen("prova.txt", "rt");
+    int dim=30;
 
 
     while(1){
         istruzione=GetOrder(fp);
-        interpreter(istruzione,fp);
+        if (dim<istruzione.p2+1) {
+            Array = Reallocation2D(Array,dim);
+            dim=dim*2;
+        }
+        interpreter(istruzione,Array, fp);
         if (istruzione.par=='q') {
             break;
         }
     }
+
+    free2D(Array, dim);
 
     return 0;
 }
