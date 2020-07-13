@@ -1,10 +1,10 @@
-include <stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 typedef struct comando{
-    long int p1;
-    long int p2;
+    int p1;
+    int p2;
     char par;
 }cmd;
 
@@ -19,29 +19,31 @@ char ** Reallocation2D(char ** a, size_t dim){
     int i;
     a = realloc(a,sizeof(char*)* dim * 2);
     for(i=dim;i<dim*2;i++){
-    a[i]= NULL;
+    a[i]= ".\n";
 }
     return a;
 }
 
-void free2D(char ** a, ssize_t numStrings)
+void free2D(char ** a, size_t k)
 {
     int i;
-    for(i=0;i<numStrings; i++)
-    {
-        if(a[i]) free(a[i]);
+    for(i=0;i<k;i++){
+        if (a[i]!=".\n") free(a[i]);
+        else {
+            a[i]=NULL; free(a[i]);
+        }
     }
     free(a);
 }
 
 void change(cmd comando, char **array, FILE *fp){
-    size_t bufsize = 2048;
+    size_t bufsize = 2048, character;
     char *buffer;
     buffer = (char *) malloc(bufsize * sizeof(char));
-    long int i=comando.p1, k=comando.p2;
+    int i=comando.p1, k=comando.p2;
     char eof[2]="q";
     while(i<=k){
-        getline(&buffer, &bufsize, fp);
+        character=getline(&buffer, &bufsize, fp);
         if (strcmp(buffer,eof)==0) break;
         array[i] = calloc(strlen(buffer), 1);
         strcpy(array[i], buffer);
@@ -60,13 +62,8 @@ void redo(cmd comando){
 
 
 void print(cmd comando,char** array){
-    long int i=comando.p1, k=comando.p2;
+    int i=comando.p1, k=comando.p2;
     while(i<=k){
-        if (i==0) {
-            printf(".\n");
-            i++;
-            continue;
-        }
         printf("%s", array[i]);
         i++;
     }
@@ -76,9 +73,10 @@ cmd GetOrder(FILE *fp){
     size_t bufsize = 1100;
     char *buffer=NULL;
     char *string;
+    size_t characters;
     cmd istr;
 
-    getline(&buffer, &bufsize, fp);
+    characters=getline(&buffer, &bufsize, fp);
     string = malloc(strlen(buffer)*sizeof(char) + 1);
     strcpy(string, buffer);
     free(buffer);
@@ -124,6 +122,7 @@ cmd GetOrder(FILE *fp){
         istr.p1=atoi(value1);
         istr.p2=atoi(value2);
     }
+    free(string);
     return istr;
 }
 
