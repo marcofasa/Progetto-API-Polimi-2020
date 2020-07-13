@@ -1,7 +1,6 @@
-#include <stdlib.h>
+include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#define H 30
 
 typedef struct comando{
     long int p1;
@@ -18,24 +17,11 @@ char ** Create2D(ssize_t Strings)
 
 char ** Reallocation2D(char ** a, size_t dim){
     int i;
-    char **b = {0};
-    b = calloc(dim*2, sizeof(char *));
-    for(i=0;i<dim*2; i++)
-    {
-        b[i] = calloc(1024, 1);
-    }
-    for(i=0;i<dim;i++){
-        if(a[i]) strcpy(b[i],a[i]);
-    }
-
-    for(i=0;i<dim; i++)
-    {
-        if(a[i]) free(a[i]);
-    }
-
-    free(a);
-
-    return b;
+    a = realloc(a,sizeof(char*)* dim * 2);
+    for(i=dim;i<dim*2;i++){
+    a[i]= NULL;
+}
+    return a;
 }
 
 void free2D(char ** a, ssize_t numStrings)
@@ -160,10 +146,9 @@ int main() {
     FILE *fp;
     cmd istruzione;
     char **Array = {0};
-    Array = Create2D(H);
-
-    fp=fopen("prova.txt", "rt");
     int dim=30;
+    Array = Create2D(dim);
+    fp=fopen("prova.txt", "rt");
 
 
     while(1){
