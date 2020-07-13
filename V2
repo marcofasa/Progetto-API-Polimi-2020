@@ -19,7 +19,7 @@ char ** Reallocation2D(char ** a, size_t dim){
     int i;
     a = realloc(a,sizeof(char*)* dim * 2);
     for(i=dim;i<dim*2;i++){
-    a[i]= ".\n";
+    a[i]= NULL;
 }
     return a;
 }
@@ -28,10 +28,7 @@ void free2D(char ** a, size_t k)
 {
     int i;
     for(i=0;i<k;i++){
-        if (a[i]!=".\n") free(a[i]);
-        else {
-            a[i]=NULL; free(a[i]);
-        }
+        if (a[i]) free(a[i]);
     }
     free(a);
 }
@@ -64,13 +61,14 @@ void redo(cmd comando){
 void print(cmd comando,char** array){
     int i=comando.p1, k=comando.p2;
     while(i<=k){
-        printf("%s", array[i]);
+        if (array[i]) printf("%s", array[i]);
+        else printf(".\n");
         i++;
     }
 }
 
 cmd GetOrder(FILE *fp){
-    size_t bufsize = 1100;
+    size_t bufsize = 2048;
     char *buffer=NULL;
     char *string;
     size_t characters;
@@ -161,7 +159,6 @@ int main() {
             break;
         }
     }
-
     free2D(Array, dim);
     fclose(fp);
 
