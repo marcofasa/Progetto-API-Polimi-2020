@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#define H 30
 
 typedef struct comando{
     long int p1;
@@ -21,36 +20,22 @@ char ** Create2D(ssize_t Strings)
     return a;
 }
 
-char ** Reallocation2D(char ** a, size_t dim){
+char ** Reallocation2D(char ** a, size_t dim, int molt){
     int i;
     char **b = {0};
-    b = calloc(dim*2, sizeof(char *));
-    for(i=0;i<dim*2; i++)
-    {
-        b[i] = calloc(1024, 1);
-    }
+    b = calloc(dim*molt, sizeof(char *));
+
     for(i=0;i<dim;i++){
-        strcpy(b[i],a[i]);
+        if (a[i]) b[i]=a[i];
     }
 
-    for(i=0;i<dim; i++)
-    {
-        if(a[i]) free(a[i]);
+    for(i=dim; i<dim*molt; i++){
+        b[i]=NULL;
     }
 
     free(a);
 
     return b;
-}
-
-void free2D(char ** a, ssize_t numStrings)
-{
-    int i;
-    for(i=0;i<numStrings; i++)
-    {
-        if(a[i]) free(a[i]);
-    }
-    free(a);
 }
 
 void change(cmd comando, char **array, FILE *fp){
@@ -60,11 +45,15 @@ void change(cmd comando, char **array, FILE *fp){
     long int i=comando.p1, k=comando.p2;
     //printf("change da %d a %d\n", comando.p1,comando.p2);
     char eof[2]="q";
+   // printf("---------------------------\n");
+   // printf("%d-->%d\n", i , k);
 
     while(i<=k){
         getline(&buffer, &bufsize, fp);
-        if (strcmp(buffer,eof)==0) break;
-        strcpy(array[i], buffer);
+        //if (strcmp(buffer,eof)==0) break;
+        //printf("%i->>>%s \n", i,buffer);
+        //strcpy(array[i], buffer);
+        array[i]=buffer;
         i++;
     }
 
@@ -102,7 +91,7 @@ cmd GetOrder(FILE *fp){
     strcpy(string, buffer);
     free(buffer);
     int i=0,j=0,k=0;
-    char value1[5],value2[5];
+    char value1[10],value2[10];
 
     while(1) {
         if (string[k] == 'c' || string[k] == 'p' || string[k] == 'r' || string[k] == 'u' || string[k] == 'd' ||
@@ -164,28 +153,33 @@ void interpreter(cmd comando,char* ar, FILE *fp){
 int main() {
     FILE *fp;
     cmd istruzione;
-    int i;
-
+    int dim = 10;
     char **Array = {0};
-    Array = Create2D(H);
+    Array = Create2D(dim);
 
-    fp=fopen("prova.txt", "rt");
-    int dim=30;
+    fp = stdin;
 
 
-    while(1){
-        istruzione=GetOrder(fp);
-        if (dim<istruzione.p2+1) {
-            Array = Reallocation2D(Array,dim);
-            dim=dim*2;
+    while (1) {
+        int molt = 0;
+        istruzione = GetOrder(fp);
+        molt = istruzione.p2 / dim + 1;
+        if (dim < istruzione.p2) {
+            Array = Reallocation2D(Array, dim, molt);
+            dim = dim * molt;
+            // printf("suca");
         }
-        interpreter(istruzione,Array, fp);
-        if (istruzione.par=='q') {
+        interpreter(istruzione, Array, fp);
+        if (istruzione.par == 'q') {
             break;
         }
     }
+    int i;
+    for(i=0;i<dim;i++){
+        printf("%s\n",Array[i]);
+}
 
-    free2D(Array, dim);
+    free(Array);
 
     return 0;
 }
