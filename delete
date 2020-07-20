@@ -4,34 +4,38 @@ void delete(cmd comando,char **array, int dim){
     char point[]=".\n";
     int f=i,o=k;
     while (i<=o){
-        int m=strcmp(array[i],point);
+        int m=strcmp(array[o],point);
         if (m==0) k--;
         o--;
     }
-    //while (f<=k){
-    //    int m=strcmp(array[i],point);
-     //   if (m==0) i++;
-     //f++;
-    //}
 
-    if (k<dim){
+    while (f<=k){
+        int m=strcmp(array[f],point);
+      if (m==0) i++;
+      f++;
+    }
+
+    int m=strcmp(array[i],point);
+
+
+
+    if (k<dim && i<=k){
         //sposto sopra per rimpiazzare quelli eliminati
-        while (i<=o){
-            if (dim==(o+j)) break;
-            array[i]=array[o+j];
-            j++;
-            i++;
-        }
 
-        while(dim>(o+j)){
-            array[k+t]=array[o+j];
-            t++;
+            while(dim>(k+j)){
+                if (i==k && m==0) break;
+            array[i]=array[k+j];
+            i++;
             j++;
+
         }
-        for(j=dim-((comando.p2-comando.p1)+1);j<dim; j++)
+        j=dim-((comando.p2-comando.p1)+1);
+
+        while(j<dim)
         {
-            //printf("--------------------------\n%s\n-------------------------\n",array[j]);
-            if(strcmp(array[i],point)!=0) strcpy(array[j],point);
+            if (i==k && m==0) break;
+            j++;
+            strcpy(array[j],point);
         }
     }
 }
