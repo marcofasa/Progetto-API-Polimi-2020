@@ -75,8 +75,7 @@ char ** Reallocation2D(char ** a, size_t dim, size_t molt){
 
 void change(cmd comando, char **array, FILE *fp){
     size_t bufsize = 1024;
-    char *buffer, * string;
-    buffer = (char *) malloc(1024);
+    char * string;
     long int i=comando.p1, k=comando.p2;
     string = malloc(1024*sizeof(char));
 
@@ -97,9 +96,6 @@ void redo(cmd comando){
 
 void print(cmd comando,char **array){
     long int i=comando.p1, k=comando.p2;
-    //printf("%x\n", array+1);
-    //printf("%d", array[0]);
-    //printf("print da %d a %d\n", comando.p1, comando.p2);
     while(i<=k){
         if (!*array[i]) printf(".\n");
         printf("%s", array[i]);
@@ -238,3 +234,4 @@ int main() {
 
     return 0;
 }
+
