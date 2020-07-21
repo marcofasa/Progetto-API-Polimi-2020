@@ -1,12 +1,39 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
 typedef struct comando{
     long int p1;
     long int p2;
     char par;
 }cmd;
+
+typedef struct Stack {
+    int top;
+    cmd instr;
+    struct Stack *next;
+} Stack;
+
+struct uStack *top=NULL;
+
+void push(cmd istr)
+{
+    struct Stack *newptr = malloc(sizeof(struct Stack));
+    newptr->instr = istr;
+    newptr->next = top;
+    top = newptr;
+}
+
+cmd pop(Stack node)
+{
+    if (top != NULL)
+    {
+        //node.next;
+        return node.instr;
+    }
+
+}
+
+
 
 char ** Create2D(ssize_t Strings)
 {
@@ -37,11 +64,8 @@ char ** Reallocation2D(char ** a, size_t dim, size_t molt){
         b[i]=a[i];
     }
 
-
-
     for (i=dim; i<dim*molt+1; i++){
         b[i] = calloc(1024, sizeof(char));
-
     }
 
     free(a);
@@ -54,22 +78,11 @@ void change(cmd comando, char **array, FILE *fp){
     char *buffer, * string;
     buffer = (char *) malloc(1024);
     long int i=comando.p1, k=comando.p2;
-    //printf("change da %d a %d\n", comando.p1,comando.p2);
-    char eof[2]="q";
-   // printf("---------------------------\n");
-   // printf("%d-->%d\n", i , k);
     string = malloc(1024*sizeof(char));
 
     while(i<=k){
         fgets(string,bufsize, fp);
         strcpy(array[i],string);
-        //if (strcmp(buffer,eof)==0) break;
-        //printf("%i->>>%s \n", i,buffer);
-        //strcpy(array[i], buffer);
-        //printf("%s", string);
-        //strncpy(string, buffer, sizeof(buffer)+1);
-        //array[i]=buffer;
-        //printf("%s", array[i]);
         i++;
     }
 
@@ -97,36 +110,34 @@ void print(cmd comando,char **array){
 void delete(cmd comando,char **array, int dim){
     long int i=comando.p1, k=comando.p2;
     int j=1,t=1;
-    int f=i,o=k;
-    while (i<=o){
-        if (!*array[o]) k--;
-        o--;
-    }
+    int o=k, u=i,eof=1;
 
-    while (f<=k){
-        if (!*array[f]) i++;
-        f++;
-    }
+    if(i==0) i++;
 
+        while(i<=o){
+            if (!*array[o]) k--;
+            o--;
+        }
 
-
-    if (k<dim && i<=k){
-        //sposto sopra per rimpiazzare quelli eliminati
+        if (i==k && (!*array[i])) eof=0;
 
         while(dim>(k+j)){
-            array[i]=array[k+j];
+            if(eof==0)break;
+            memmove(array[i],array[k+j],1024);
             i++;
             j++;
 
         }
-        j=dim-((comando.p2-comando.p1)+1);
+
+        j=dim-((o-i)+1);
 
         while(j<dim)
         {
+            if(eof==0)break;
+            array[j]=NULL;
             j++;
-            *array[j]=NULL;
         }
-    }
+
 }
 
 cmd GetOrder(FILE *fp){
@@ -138,7 +149,7 @@ cmd GetOrder(FILE *fp){
     fgets(string,bufsize, fp);
 
     int i=0,j=0,k=0;
-    char value1[10],value2[10];
+    char value1[50],value2[50];
 
     while(1) {
         if (string[k] == 'c' || string[k] == 'p' || string[k] == 'r' || string[k] == 'u' || string[k] == 'd' ||
@@ -215,17 +226,13 @@ int main() {
         if (istruzione.par == 'q') {
             break;
         }
-        molt = istruzione.p2 / dim + 1;
-        if (dim <= istruzione.p2) {
+        molt = ((istruzione.p2 + (istruzione.p2-istruzione.p1)) / dim) + 1;
+        if (dim <= istruzione.p2 + (istruzione.p2-istruzione.p1)) {
             Array = Reallocation2D(Array, dim, molt);
             dim = dim * molt;
         }
         interpreter(istruzione, Array, fp,dim);
     }
-    int i;
-    for(i=0;i<dim;i++){
-        //printf("%s\n",Array[i]);
-   }
 
     free(Array);
 
