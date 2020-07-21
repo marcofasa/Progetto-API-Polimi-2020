@@ -86,6 +86,48 @@ void print(cmd comando,char **array){
     }
 }
 
+void delete(cmd comando,char **array, int dim){
+    long int i=comando.p1, k=comando.p2;
+    int j=1,t=1;
+    char point[]=".\n";
+    int f=i,o=k;
+    while (i<=o){
+        int m=strcmp(array[o],point);
+        if (m==0) k--;
+        o--;
+    }
+
+    while (f<=k){
+        int m=strcmp(array[f],point);
+      if (m==0) i++;
+      f++;
+    }
+
+    int m=strcmp(array[i],point);
+
+
+
+    if (k<dim && i<=k){
+        //sposto sopra per rimpiazzare quelli eliminati
+
+            while(dim>(k+j)){
+                if (i==k && m==0) break;
+            memmove(array[i],array[k+j],1024);
+            i++;
+            j++;
+
+        }
+        j=dim-((comando.p2-comando.p1)+1);
+
+        while(j<dim)
+        {
+            if (i==k && m==0) break;
+            j++;
+            strcpy(array[j],point);
+        }
+    }
+}
+
 cmd GetOrder(FILE *fp){
     size_t bufsize = 1024;
     char *buffer=NULL;
@@ -140,7 +182,7 @@ cmd GetOrder(FILE *fp){
 }
 
 
-void interpreter(cmd comando,char** ar, FILE *fp){
+void interpreter(cmd comando,char** ar, FILE *fp,int dim){
 
     if (comando.par=='c')
         change(comando,ar,fp);
@@ -150,6 +192,8 @@ void interpreter(cmd comando,char** ar, FILE *fp){
         redo(comando);
     else if (comando.par=='p')
         print(comando,ar);
+    else if (comando.par=='d')
+        delete(comando,ar,dim);
 
 }
 
@@ -171,18 +215,15 @@ int main() {
             break;
         }
         molt = istruzione.p2 / dim + 1;
-        if (dim < istruzione.p2) {
+        if (dim <= istruzione.p2) {
             Array = Reallocation2D(Array, dim, molt);
             dim = dim * molt;
         }
-        interpreter(istruzione, Array, fp);
+        interpreter(istruzione, Array, fp,dim);
     }
-    int i;
-    for(i=0;i<dim;i++){
-        //printf("%s\n",Array[i]);
-   }
 
     free(Array);
 
     return 0;
 }
+
