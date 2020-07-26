@@ -1,0 +1,22 @@
+void insert(cmd comando, char **arraytmp, char **arraydef, int dim){
+    long int i=comando.p1, k=comando.p2;
+    int t=dim-1,l=0;
+    int j=i;
+    while(1){
+        if ((!*arraydef[t] && *arraydef[t-1]) || t==1) break;
+        t--;
+    }
+    while(i<=k){
+        if (t==1) break;
+        memmove(arraydef[t],arraydef[i],1024);
+        i++;
+        t++;
+    }
+
+    while (j<=k){
+        memmove(arraydef[j],arraytmp[l],1024);
+        l++;
+        j++;
+    }
+
+}
