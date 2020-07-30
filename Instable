@@ -3,7 +3,6 @@
 #include <string.h>
 int LIM=0;
 
-
 typedef struct comando{
     long int p1;
     long int p2;
@@ -87,41 +86,82 @@ char ** Reallocation2D(char ** a, size_t dim, size_t molt){
 
 void changeundo(cmd comando, char **array, char **temp){
     long int i=comando.p1, k=comando.p2;
-    int o=LIM-(k-i)-1;
-    LIM=LIM-(k-i)-1;
+
     while (i<=k){
-        memmove(array[i],temp[o],1024);
-        i++;
-        o++;
+        memmove(array[k],temp[LIM],1024);
+        k--;
+        LIM--;
     }
+    LIM++;
 }
 
 void insert(cmd comando, char **array, char** temp, int dim){
     long int i=comando.p1, k=comando.p2;
-    int t=dim,l=LIM-(k-i)-1;
+    int t=dim-1;
     while(1){
         if ((!*array[t] && *array[t-1]) || t==1) break;
         t--;
     }
 
-    int o=t+(k-i)+1;
+    int o=t+(k-i);
 
-    while(i<=t){
+
+    while(i<t){
         memmove(array[o],array[t],1024);
         t--;
         o--;
     }
-    int u=0;
-    while (u<15){
-    //printf("------\n %s \n ------\n",temp[u]);
-    u++;}
+
     while (i<=k){
-        strcpy(array[i],temp[l]);
-        l++;
-        i++;
+        strcpy(array[i],temp[LIM]);
+        LIM--;
+        k--;
+    }
+    LIM++;
+
+}
+
+void delete(cmd comando,char **array,char **temp, int dim){
+    long int i=comando.p1, k=comando.p2;
+    int j=1,t=1;
+    int o=k, u=i,eof=1;
+
+    UNDO=push(UNDO,comando);
+
+    if(i==0) i++;
+
+    long int finish=k;
+
+    while(i<=o){
+        if (!*array[o]) k--;
+        o--;
     }
 
-    LIM=LIM-(k-i)+1;
+    if (i==k && (!*array[i])) eof=0;
+
+    while (u<=finish){
+        memmove(temp[10],array[u],1024);
+        LIM++;
+        u++;
+        // printf("%d\n",LIM);
+    }
+
+    while(dim>(k+j)){
+        if(eof==0)break;
+        memmove(array[i],array[k+j],1024);
+        i++;
+        j++;
+
+    }
+
+    j=dim-((o-i)+1);
+
+    while(j<dim)
+    {
+        if(eof==0)break;
+        array[j]=NULL;
+        j++;
+    }
 
 }
 
@@ -139,15 +179,18 @@ void change(cmd comando, char **array, char **temp, FILE *fp){
         strcpy(array[i],string);
         i++;
         LIM++;
-
     }
 }
+
+
+
 void undo(cmd comando, char **array,char **temp, int dim){
     cmd elem;
     long int i=0,k=comando.p1;
     while (i<k){
         if (Empty(UNDO)!=0) {
             UNDO=pop(UNDO,&elem);
+            //printf("%d %d %c", elem.p1,elem.p2,elem.par);
             REDO=push(REDO,elem);
         }
         if (Empty(UNDO)==0) {
@@ -156,7 +199,6 @@ void undo(cmd comando, char **array,char **temp, int dim){
         //printf("%d %d %c \n",elem.p1,elem.p2,elem.par);
         if (elem.par=='c') changeundo(elem,array,temp);
         else if (elem.par=='d') insert(elem,array,temp,dim);
-
         i++;
     }
 
@@ -173,7 +215,7 @@ void redo(cmd comando, char **array,char **temp, int dim){
             break;}
         i++;
         if (elem.par=='c') changeundo(elem,array,temp);
-        else if (elem.par=='d') insert(elem,array,temp,dim);
+        else if (elem.par=='d') delete(elem,array,temp,dim);
 
     }
 }
@@ -188,49 +230,7 @@ void print(cmd comando,char **array){
     }
 }
 
-void delete(cmd comando,char **array,char **temp, int dim){
-    long int i=comando.p1, k=comando.p2;
-    int j=1,t=1;
-    int o=k, u=i,eof=1;
 
-    UNDO=push(UNDO,comando);
-
-    if(i==0) i++;
-
-    long int finish=k;
-
-        while(i<=o){
-            if (!*array[o]) k--;
-            o--;
-        }
-
-        if (i==k && (!*array[i])) eof=0;
-
-        while (u<=finish){
-            memmove(temp[10],array[u],1024);
-            LIM++;
-            u++;
-           // printf("%d\n",LIM);
-        }
-
-        while(dim>(k+j)){
-            if(eof==0)break;
-            memmove(array[i],array[k+j],1024);
-            i++;
-            j++;
-
-        }
-
-        j=dim-((o-i)+1);
-
-        while(j<dim)
-        {
-            if(eof==0)break;
-            array[j]=NULL;
-            j++;
-        }
-
-}
 
 cmd GetOrder(FILE *fp){
     size_t bufsize = 1024;
@@ -324,11 +324,14 @@ int main() {
             Array = Reallocation2D(Array, dim, molt);
             dim = dim * molt;
         }
-        if (dim2<LIM+(istruzione.p2-istruzione.p1+1)){
-            Temp = Reallocation2D(Temp, dim2, 2);
-            dim2=dim2*2;
+        if (dim2<=(LIM+(istruzione.p2-istruzione.p1))) {
+            molt = ((LIM + istruzione.p2-istruzione.p1) / dim2) + 1;
+            Temp = Reallocation2D(Temp, dim2, molt);
+            dim2=dim2*molt;
         }
         interpreter(istruzione, Array,Temp, fp,dim);
+        //printf("---------\n %d\n ------------\n",LIM);
+        //if (UNDO!=NULL) printf("---------\n %d,%d,%c\n ------------\n", UNDO->instruction.p1,UNDO->instruction.p2,UNDO->instruction.par);
     }
     //printf("%s", Temp[1]);
 
