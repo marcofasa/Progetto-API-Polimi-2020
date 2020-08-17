@@ -11,6 +11,7 @@ typedef struct comando{
 
 typedef struct Stack {
     cmd instruction;
+    char **temp;
     struct Stack *next;
 } uStack;
 
@@ -55,7 +56,7 @@ char ** Create2D(ssize_t Strings)
     for(i=0;i<Strings; i++)
     {
         a[i]=NULL;
-        a[i] = calloc(1024 , sizeof(char));
+        //a[i] = calloc(1024 , sizeof(char));
 
     }
     return a;
@@ -75,9 +76,9 @@ char ** Reallocation2D(char ** a, size_t dim, size_t molt){
         b[i]=a[i];
     }
 
-    for (i=dim; i<dim*molt+1; i++){
-        b[i] = calloc(1024, sizeof(char));
-    }
+        //for (i=dim; i<dim*molt+1; i++){
+        //b[i] = calloc(1024, sizeof(char));
+        //}
 
     free(a);
 
@@ -95,11 +96,12 @@ void changeundo(cmd comando, char **array, char **temp){
     LIM++;
 }
 
+
 void insert(cmd comando, char **array, char** temp, int dim){
     long int i=comando.p1, k=comando.p2;
     int t=dim-1;
     while(1){
-        if ((!*array[t] && *array[t-1]) || t==1) break;
+        if ((array[t]==NULL && array[t-1]!=NULL) || t==1) break;
         t--;
     }
 
@@ -130,25 +132,26 @@ void delete(cmd comando,char **array,char **temp, int dim){
 
     if(i==0) i++;
 
-    long int finish=k;
-
     while(i<=o){
-        if (!*array[o]) k--;
+        if (array[o]==NULL) k--;
         o--;
     }
 
-    if (i==k && (!*array[i])) eof=0;
+    if (i==k && (array[i]==NULL)) eof=0;
 
-    while (u<=finish){
-        memmove(temp[10],array[u],1024);
+    while (u<=k){
+        temp[LIM]=malloc(1024*sizeof(char));
+        memmove(temp[LIM],array[u],1024);
+        free(array[u]);
         LIM++;
         u++;
         // printf("%d\n",LIM);
     }
 
     while(dim>(k+j)){
-        if(eof==0)break;
-        memmove(array[i],array[k+j],1024);
+        if(eof==0) break;
+        if (array[k+j]!=NULL) memmove(array[i],array[k+j],1024);
+        else array[i]=NULL;
         i++;
         j++;
 
@@ -169,14 +172,17 @@ void change(cmd comando, char **array, char **temp, FILE *fp){
     size_t bufsize = 1024;
     char * string;
     long int i=comando.p1, k=comando.p2;
-    string = malloc(1024*sizeof(char));
+    //string = malloc(1024*sizeof(char));
     UNDO=push(UNDO,comando);
     //printf("%d %d %c \n",UNDO->instruction.p1,UNDO->instruction.p2,UNDO->instruction.par);
 
     while(i<=k){
-        fgets(string,bufsize, fp);
+        if (array[i]!=NULL){
+        temp[LIM]=malloc(1024*sizeof(char));
         memmove(temp[LIM],array[i],1024);
-        strcpy(array[i],string);
+        free(array[i]);}
+        array[i]=malloc(1024*sizeof(char));
+        fgets(array[i],bufsize, fp);
         i++;
         LIM++;
     }
@@ -224,8 +230,8 @@ void redo(cmd comando, char **array,char **temp, int dim){
 void print(cmd comando,char **array){
     long int i=comando.p1, k=comando.p2;
     while(i<=k){
-        if (!*array[i]) printf(".\n");
-        printf("%s", array[i]);
+        if (array[i]==NULL) printf(".\n");
+        else printf("%s", array[i]);
         i++;
     }
 }
@@ -304,7 +310,7 @@ void interpreter(cmd comando,char** ar, char **tmp, FILE *fp,int dim){
 int main() {
     FILE *fp;
     cmd istruzione;
-    int dim = 5, dim2=50;
+    int dim = 10, dim2=20;
     char **Array = {0};
     char **Temp = {0};
     Array = Create2D(dim);
@@ -324,16 +330,14 @@ int main() {
             Array = Reallocation2D(Array, dim, molt);
             dim = dim * molt;
         }
+
         if (dim2<=(LIM+(istruzione.p2-istruzione.p1))) {
             molt = ((LIM + istruzione.p2-istruzione.p1) / dim2) + 1;
             Temp = Reallocation2D(Temp, dim2, molt);
             dim2=dim2*molt;
         }
         interpreter(istruzione, Array,Temp, fp,dim);
-        //printf("---------\n %d\n ------------\n",LIM);
-        //if (UNDO!=NULL) printf("---------\n %d,%d,%c\n ------------\n", UNDO->instruction.p1,UNDO->instruction.p2,UNDO->instruction.par);
     }
-    //printf("%s", Temp[1]);
 
     free(Array);
 
