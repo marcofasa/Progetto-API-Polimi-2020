@@ -11,12 +11,11 @@ typedef struct comando{
 
 typedef struct Stack {
     cmd instruction;
-    char **temp;
     struct Stack *next;
 } uStack;
 
 void CreateStack(struct Stack *s){
-        s = NULL;
+    s = NULL;
 }
 
 int Empty(struct Stack *s){
@@ -75,9 +74,9 @@ char ** Reallocation2D(char ** a, size_t dim, size_t molt){
         b[i]=a[i];
     }
 
-        //for (i=dim; i<dim*molt+1; i++){
-        //b[i] = calloc(1024, sizeof(char));
-        //}
+    //for (i=dim; i<dim*molt+1; i++){
+    //b[i] = calloc(1024, sizeof(char));
+    //}
 
     free(a);
 
@@ -146,9 +145,16 @@ void delete(cmd comando,char **array,char **temp, int dim){
     }
 
     while(dim>(k+j)){
-        if(eof==0) break;
-        if (array[k+j]!=NULL) memmove(array[i],array[k+j],1024);
-        else array[i]=NULL;
+        if(eof==0 || (k+j)==dim) break;
+        if (array[k+j]!=NULL){
+            if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
+            memmove(array[i],array[(k+j)],1024);
+        }
+        else {
+            free(array[k+j]);
+            free(array[i]);
+            array[i]=NULL;
+        }
         i++;
         j++;
 
@@ -179,7 +185,7 @@ void change(cmd comando, char **array, char **temp, FILE *fp){
         //memmove(temp[LIM],array[i],1024);
         //free(array[i]);}
         temp[LIM]=array[i];
-        array[i]=malloc(1024*sizeof(char));
+        if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
         fgets(array[i],bufsize, fp);
         i++;
         LIM++;
@@ -238,10 +244,9 @@ void print(cmd comando,char **array){
 
 cmd GetOrder(FILE *fp){
     size_t bufsize = 1024;
-    char *buffer=NULL;
     char *string;
     cmd istr;
-    string = malloc(1024);
+    string = malloc(1024*sizeof(char));
     fgets(string,bufsize, fp);
 
     int i=0,j=0,k=0;
@@ -331,11 +336,11 @@ int main() {
             dim = dim * molt +1;
         }
 
-        //if (dim2<=(LIM+(istruzione.p2-istruzione.p1))) {
-       //     molt = ((LIM + istruzione.p2-istruzione.p1) / dim2) + 1;
-         //   Temp = Reallocation2D(Temp, dim2, molt);
-       //     dim2=dim2*molt;
-       // }
+        if (dim2<=(LIM+(istruzione.p2-istruzione.p1))) {
+             molt = ((LIM + istruzione.p2-istruzione.p1) / dim2) + 1;
+             Temp = Reallocation2D(Temp, dim2, molt);
+             dim2=dim2*molt;
+        }
         interpreter(istruzione, Array,Temp, fp,dim);
     }
 
@@ -344,4 +349,3 @@ int main() {
 
     return 0;
 }
-
