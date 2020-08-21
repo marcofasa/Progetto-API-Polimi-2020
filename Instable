@@ -10,6 +10,7 @@ typedef struct comando{
 }cmd;
 
 typedef struct Stack {
+    int start,finish;
     cmd instruction;
     struct Stack *next;
 } uStack;
@@ -36,11 +37,13 @@ struct Stack* push(struct Stack *head,cmd elem)
     return head;
 }
 
-struct Stack* pop(struct Stack *head,cmd* element)
+struct Stack* pop(struct Stack *head,cmd* element, int* s,int* f)
 {
     element->p1=head->instruction.p1;
     element->p2=head->instruction.p2;
     element->par=head->instruction.par;
+    s=head->start;
+    f=head->finish;
     head=head->next;
     return head;
 }
@@ -97,7 +100,8 @@ void changeundo(cmd comando, char **array, char **temp){
 
 void insert(cmd comando, char **array, char** temp, int dim){
     long int i=comando.p1, k=comando.p2;
-    int t=dim-1;
+    int t=dim;
+    //Controlla fino a quando non arrivo a una riga non vuota
     while(1){
         if ((array[t]==NULL && array[t-1]!=NULL) || t==1) break;
         t--;
@@ -105,15 +109,25 @@ void insert(cmd comando, char **array, char** temp, int dim){
 
     int o=t+(k-i);
 
-
-    while(i<t){
+    while(i<=t){
+        if (array[t]==NULL) array[t]=malloc(1024*sizeof(char));
+        if (array[o]==NULL) array[o]=malloc(1024*sizeof(char));
         memmove(array[o],array[t],1024);
         t--;
         o--;
     }
 
     while (i<=k){
-        strcpy(array[i],temp[LIM]);
+        if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
+        if (temp[LIM]==NULL) {
+            free(array[i]);
+            array[i]=NULL;
+        }
+        else {
+            memmove(array[i], temp[LIM], 1024);
+            free(temp[LIM]);
+            temp[LIM] = NULL;
+        }
         LIM--;
         k--;
     }
@@ -127,6 +141,8 @@ void delete(cmd comando,char **array,char **temp, int dim){
     int o=k, u=i,eof=1;
 
     UNDO=push(UNDO,comando);
+    UNDO->start=LIM;
+    UNDO->finish=LIM+(k-i);
 
     if(i==0) i++;
 
@@ -145,7 +161,7 @@ void delete(cmd comando,char **array,char **temp, int dim){
     }
 
     while(dim>(k+j)){
-        if(eof==0 || (k+j)==dim) break;
+        if(eof==0) break;
         if (array[k+j]!=NULL){
             if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
             memmove(array[i],array[(k+j)],1024);
@@ -176,7 +192,9 @@ void change(cmd comando, char **array, char **temp, FILE *fp){
     char * string;
     long int i=comando.p1, k=comando.p2;
     //string = malloc(1024*sizeof(char));
-    //UNDO=push(UNDO,comando);
+    UNDO=push(UNDO,comando);
+    UNDO->start=LIM;
+    UNDO->finish=LIM+(k-i);
     //printf("%d %d %c \n",UNDO->instruction.p1,UNDO->instruction.p2,UNDO->instruction.par);
 
     while(i<=k){
@@ -197,9 +215,10 @@ void change(cmd comando, char **array, char **temp, FILE *fp){
 void undo(cmd comando, char **array,char **temp, int dim){
     cmd elem;
     long int i=0,k=comando.p1;
+    int s,f;
     while (i<k){
         if (Empty(UNDO)!=0) {
-            UNDO=pop(UNDO,&elem);
+            UNDO=pop(UNDO,&elem,&s,&f);
             //printf("%d %d %c", elem.p1,elem.p2,elem.par);
             REDO=push(REDO,elem);
         }
@@ -219,6 +238,7 @@ void redo(cmd comando, char **array,char **temp, int dim){
     while (i<k){
         if(Empty(REDO)!=0){
             REDO=pop(REDO,&elem);
+            UNDO=push(UNDO,elem);
         }
         if (Empty(REDO)==0) {
             // printf("vuoto\n");
@@ -331,12 +351,12 @@ int main() {
             break;
         }
         molt = ((istruzione.p2/ dim) + 1);
-        if (dim <= istruzione.p2) {
+        if (dim <= istruzione.p2+1) {
             Array = Reallocation2D(Array, dim, molt);
-            dim = dim * molt +1;
+            dim = dim * molt;
         }
 
-        if (dim2<=(LIM+(istruzione.p2-istruzione.p1))) {
+        if (dim2<=(LIM+(istruzione.p2-istruzione.p1)-1)) {
              molt = ((LIM + istruzione.p2-istruzione.p1) / dim2) + 1;
              Temp = Reallocation2D(Temp, dim2, molt);
              dim2=dim2*molt;
