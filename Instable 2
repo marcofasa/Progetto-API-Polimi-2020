@@ -129,8 +129,8 @@ void insert(cmd comando, char **array, char** temp, int dim,int finish){
         }
         else {
             if (temp[finish]==NULL) {free(temp[finish]);
-            temp[finish] = NULL;
-        }
+                temp[finish] = NULL;
+            }
             else {
                 if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
                 memmove(array[i], temp[finish], 1024);
@@ -174,14 +174,16 @@ void delete(cmd comando,char **array,char **temp, int dim){
 
     while(dim>(k+j)){
         if(eof==0) break;
-        if (array[k+j]!=NULL){
+        if (array[k+j]){
             if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
             memmove(array[i],array[(k+j)],1024);
         }
         else {
             free(array[k+j]);
-            free(array[i]);
-            array[i]=NULL;
+            if (array[i]){
+                //free(array[i]);
+                array[i]=NULL;
+            }
         }
         i++;
         j++;
@@ -201,26 +203,30 @@ void delete(cmd comando,char **array,char **temp, int dim){
 void change(cmd comando, char **array, char **temp, FILE *fp){
     size_t bufsize = 1024;
     long int i=comando.p1, k=comando.p2;
-    int f=LIM+(k-i);
-
+    int f=LIM+(k-i), strln;
+    char* string=malloc(1024);
 
     UNDO=push(UNDO,comando);
     UNDO->finish=f;
     //printf("%d %d %c \n",UNDO->instruction.p1,UNDO->instruction.p2,UNDO->instruction.par);
 
     while(i<=k){
+        fgets(string,bufsize, fp);
         if (array[i]==NULL) {
-            temp[LIM]=array[i];
-            array[i]=malloc(1024*sizeof(char));
+            temp[LIM]=NULL;
         }
         else {
-            if(temp[LIM]==NULL) temp[LIM]=malloc(1024*sizeof(char));
-            memmove(temp[LIM],array[i],1024);
+            if(temp[LIM]==NULL) temp[LIM]=malloc(strlen(array[i])*sizeof(char)+1);
+            memmove(temp[LIM],array[i],strlen(array[i])+1);
         }
-        fgets(array[i],bufsize, fp);
+        free(array[i]);
+        strln=strlen(string)+1;
+        array[i]=malloc(strln*sizeof(char)+1);
+        memmove(array[i],string,strln);
         i++;
         LIM++;
     }
+    free(string);
 }
 
 
