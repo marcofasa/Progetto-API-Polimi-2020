@@ -107,10 +107,7 @@ void insert(cmd comando, char **array, char** temp, int dim,int finish) {
         r++;
     }
 
-
-
-
-    while (i<k) {
+    while (i<=k) {
         array[i]=temp[finish];
         finish--;
         i++;
@@ -304,6 +301,7 @@ cmd GetOrder(FILE *fp){
         }
     }
     free(string);
+    
     return istr;
 }
 
