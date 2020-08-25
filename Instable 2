@@ -81,151 +81,114 @@ char ** Reallocation2D(char ** a, size_t dim, size_t molt){
 }
 
 void changeundo(cmd comando, char **array, char **temp,int finish){
-    long int i=comando.p1, k=comando.p2;
+    int i=comando.p1, k=comando.p2;
 
     while (i<=k){
-        if (array[k]==NULL) array[k]=malloc(1024*sizeof(char));
-
-        if (temp[finish]!=NULL ) memmove(array[k],temp[finish],1024);
-        else {
-            free(array[k]);
-            array[k]=NULL;
-        }
+            char* tmp=array[k];
+            array[k]=temp[finish];
+            temp[finish]=tmp;
         k--;
         finish--;
     }
 }
 
 
-void insert(cmd comando, char **array, char** temp, int dim,int finish){
-    long int i=comando.p1, k=comando.p2;
-    int t=dim;
+void insert(cmd comando, char **array, char** temp, int dim,int finish) {
+    int i = comando.p1, k = comando.p2;
+    int j=1, gap=k-i+1, eof=1, r=0;
     /*int io=0;
-    while(io<LIM){
+    while(io<=LIM){
         printf("%d , %s \n", io,temp[io]);
         io++;
     }*/
 
-    //Controlla fino a quando non arrivo a una riga non vuota
-    while(1){
-        if ((array[t]==NULL && array[t-1]!=NULL) || t==1) break;
-        t--;
+    while (dim-gap-r>=k){
+        array[(dim-r)]=array[(dim-gap-r)];
+        r++;
     }
 
-    int o=t+(k-i);
 
-    while(i<=t){
-        if (array[t]==NULL) array[t]=malloc(1024*sizeof(char));
-        if (array[o]==NULL) array[o]=malloc(1024*sizeof(char));
-        memmove(array[o],array[t],1024);
-        t--;
-        o--;
-    }
 
-    while (i<=k){
-        if (temp[finish]==NULL) {
-            free(array[i]);
-            array[i]=NULL;
-        }
-        else {
-            if (temp[finish]==NULL) {free(temp[finish]);
-                temp[finish] = NULL;
-            }
-            else {
-                if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
-                memmove(array[i], temp[finish], 1024);
-            }
-        }
+
+    while (i<k) {
+        array[i]=temp[finish];
         finish--;
-        k--;
+        i++;
     }
 }
 
 void delete(cmd comando,char **array,char **temp, int dim){
     long int i=comando.p1, k=comando.p2;
-    int j=1,t=1;
-    int o=k, u=i,eof=1;
-    int f=LIM+(k-i);
+    int j=1;
+    int o=k,eof=1;
 
-    UNDO=push(UNDO,comando);
-    UNDO->finish=f;
-
+    //Controllo la validità dell'intervallo
     if(i==0) i++;
 
     while(i<=o){
         if (array[o]==NULL) k--;
         o--;
     }
+    o=k;
 
-    if (i==k && (array[i]==NULL)) eof=0;
+    if (i==k && (array[i])==NULL) eof=0;
 
-    while (u<=k){
-        if (array[u]==NULL) {
-            temp[LIM]=array[u];
-        }
-        else{
-            if(temp[LIM]==NULL) temp[LIM]=malloc(1024*sizeof(char));
-            memmove(temp[LIM],array[u],1024);
-        }
+    //Aggiusto il comando (in caso ci siano comandi nulli o con intervalli non corretti)
+    comando.p1=i;
+    comando.p2=k;
+
+    while(i<=k){
+        if(eof==0)break;
+        temp[LIM]=array[i];
         LIM++;
-        u++;
-        // printf("%d\n",LIM);
+        i++;
     }
+
+    UNDO=push(UNDO,comando);
+    UNDO->finish=LIM-1;
+    i=comando.p1;
+
+    //scalo k per rendere l'intervallo effettivo
 
     while(dim>(k+j)){
-        if(eof==0) break;
-        if (array[k+j]){
-            if (array[i]==NULL) array[i]=malloc(1024*sizeof(char));
-            memmove(array[i],array[(k+j)],1024);
-        }
-        else {
-            free(array[k+j]);
-            if (array[i]){
-                //free(array[i]);
-                array[i]=NULL;
-            }
-        }
+        if(eof==0)break;
+        array[i]=array[k+j];
         i++;
         j++;
+
     }
+    i=comando.p1;
 
     j=dim-((o-i)+1);
 
-    while(j<dim)
+    while(j<=dim)
     {
         if(eof==0)break;
         array[j]=NULL;
         j++;
     }
-
 }
 
 void change(cmd comando, char **array, char **temp, FILE *fp){
     size_t bufsize = 1024;
     long int i=comando.p1, k=comando.p2;
-    int f=LIM+(k-i), strln;
+    int strln;
     char* string=malloc(1024);
 
     UNDO=push(UNDO,comando);
-    UNDO->finish=f;
+
     //printf("%d %d %c \n",UNDO->instruction.p1,UNDO->instruction.p2,UNDO->instruction.par);
 
     while(i<=k){
         fgets(string,bufsize, fp);
-        if (array[i]==NULL) {
-            temp[LIM]=NULL;
-        }
-        else {
-            if(temp[LIM]==NULL) temp[LIM]=malloc(strlen(array[i])*sizeof(char)+1);
-            memmove(temp[LIM],array[i],strlen(array[i])+1);
-        }
-        free(array[i]);
+        temp[LIM]=array[i];
         strln=strlen(string)+1;
-        array[i]=malloc(strln*sizeof(char)+1);
+        array[i]=malloc(strln*sizeof(char));
         memmove(array[i],string,strln);
         i++;
         LIM++;
     }
+    UNDO->finish=LIM-1;
     free(string);
 }
 
@@ -236,40 +199,43 @@ void undo(cmd comando, char **array,char **temp, int dim){
     long int i=0,k=comando.p1;
     int f=0;
     while (i<k){
-        if (Empty(UNDO)!=0) {
+        if (Empty(UNDO)==0) {
+            // printf("vuoto\n");
+            break;}
+        else {
             f=UNDO->finish;
             UNDO=pop(UNDO,&elem);
             //printf("%d %d %c\n", elem.p1,elem.p2,elem.par);
             REDO=push(REDO,elem);
+            REDO->finish=f;
         }
-        if (Empty(UNDO)==0) {
-            // printf("vuoto\n");
-            break;}
         //printf("%d %d %c \n",elem.p1,elem.p2,elem.par);
         if (elem.par=='c') changeundo(elem,array,temp,f);
         else if (elem.par=='d') insert(elem,array,temp,dim,f);
         i++;
     }
 }
+
 void redo(cmd comando, char **array,char **temp, int dim){
     cmd elem;
     long int i=0, k=comando.p1;
     int f=0;
 
     while (i<k){
-        if(Empty(REDO)!=0){
+        if(Empty(REDO)==0){
+            break;
+        }
+        else {
             f=REDO->finish;
             REDO=pop(REDO,&elem);
             //printf("%d %d %c", elem.p1,elem.p2,elem.par);
             UNDO=push(UNDO,elem);
+            UNDO->finish=f;
         }
-        if (Empty(REDO)==0) {
-            // printf("vuoto\n");
-            break;}
-        i++;
+
         if (elem.par=='c') changeundo(elem,array,temp,f);
         else if (elem.par=='d') delete(elem,array,temp,dim);
-
+        i++;
     }
 }
 
@@ -372,29 +338,37 @@ int main() {
     while (1) {
         int molt = 0;
         istruzione = GetOrder(fp);
+        //printf("\n-----------------\n%d %d %c\n", istruzione.p1,istruzione.p2,istruzione.par);
         if (istruzione.par == 'q') {
             break;
         }
-        molt = ((istruzione.p2/ dim) + 1);
-        if (dim <= istruzione.p2+1) {
+        molt = ((istruzione.p2/dim) + 2);
+        if (istruzione.p2+1>dim) {
             Array = Reallocation2D(Array, dim, molt);
             dim = dim * molt;
         }
 
-        if (dim2<=(LIM+(istruzione.p2-istruzione.p1)-1)) {
-            molt = ((LIM + istruzione.p2-istruzione.p1) / dim2) + 1;
+        if (dim2<(LIM+(istruzione.p2-istruzione.p1))) {
+            molt = ((LIM + istruzione.p2) / dim2) + 2;
             Temp = Reallocation2D(Temp, dim2, molt);
             dim2=dim2*molt;
         }
-
+        /*printf("\n-----------a----------\n");
+        int io;
+        io=0;
+        while(io<=dim){
+            printf("%d , %s \n", io,Array[io]);
+            io++;
+        }
+        io=0;
+        while(io<=LIM){
+            printf("%d , %s \n", io,Temp[io]);
+            io++;
+        }
+        printf("\n----------a-----------\n");*/
         //if (Empty(UNDO)!=0) printf("\n---------%d,%d,%c   to %d  ------\n",UNDO->instruction.p1,UNDO->instruction.p2,UNDO->instruction.par,UNDO->finish);
         interpreter(istruzione, Array,Temp, fp,dim);
     }
-
-    /*int i;
-     for(i=0;i<LIM;i++){
-        printf("%s\n",Temp[i]);
-    }*/
 
     free(Array);
     free(Temp);
