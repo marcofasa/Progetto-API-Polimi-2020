@@ -4,6 +4,7 @@
 int LIM=0;
 int uSTACKLIM=0;
 int rSTACKLIM=0;
+int SAVER=0;
 
 typedef struct comando{
     long int p1;
@@ -92,6 +93,8 @@ char ** Reallocation2D(char ** a, size_t dim, size_t molt){
     return b;
 }
 
+
+
 //FUNZIONE PER UNDO DELLA CHANGE
 void changeundo(cmd comando, char **array, char **temp,int finish){
     int i=comando.p1, k=comando.p2;
@@ -176,6 +179,8 @@ void delete(cmd comando,char **array,char **temp, int dim){
     }
     o=k;
 
+    SAVER=k-(comando.p2-comando.p1);
+
     if (i<=k && (array[i])==NULL) eof=0;
 
     //Aggiusto il comando (in caso ci siano comandi nulli o con intervalli non corretti)
@@ -187,7 +192,7 @@ void delete(cmd comando,char **array,char **temp, int dim){
         LIM++;
         i++;
     }
-    
+
     if (eof==0){
         comando.p1=0;
         comando.p2=0;
@@ -228,21 +233,23 @@ void change(cmd comando, char **array, char **temp, FILE *fp){
     size_t bufsize = 1024;
     int i=comando.p1, k=comando.p2;
     int strln;
-
+    if (k>SAVER) SAVER=k;
+    
     UNDO=push(UNDO,comando);
     uSTACKLIM=uSTACKLIM+1;
+    char string[1024];
 
     while(i<=k){
-        char string[1024];
         fgets(string,bufsize,fp);
         temp[LIM]=array[i];
         strln=strlen(string);
+        string[strln-1]='\0';
         array[i]=malloc(strln+1);
         memmove(array[i],string,strln+1);
-        array[i][strln-1]='\0';
         i++;
         LIM++;
     }
+
     UNDO->finish=LIM-1;
 
 }
@@ -389,7 +396,25 @@ cmd undocontrol(FILE *fp,char** ar, char **tmp,cmd istr,int sum,int dim){
         }
         else istr2=undocontrol(fp,ar,tmp,istr2,sum,dim);
     }
-    else {
+    else if (istr2.par=='p'){
+        istr.p1 = sum;
+        if (istr.p1 >= 0) undo(istr, ar, tmp, dim);
+        else {
+            istr.p1 = istr.p1 * -1;
+            redo(istr, ar, tmp, dim);
+        }
+        print(istr2,ar);
+        istr2=GetOrder(fp);
+        if (istr2.par=='u'){
+            if(istr2.p1>uSTACKLIM) istr2.p1=uSTACKLIM;
+            istr2=undocontrol(fp,ar,tmp,istr2,istr2.p1,dim);
+        }
+        else if (istr.par=='r'){
+            if(istr2.p1>rSTACKLIM) istr2.p1=(rSTACKLIM);
+            istr2=undocontrol(fp,ar,tmp,istr2,istr2.p1*-1,dim);
+        }
+    }
+    else{
         istr.p1 = sum;
         if (istr.p1 >= 0) undo(istr, ar, tmp, dim);
         else {
@@ -441,8 +466,8 @@ int main() {
             istruzione=undocontrol(fp,Array,Temp,istruzione,istruzione.p1,dim);
         }
         else if (istruzione.par=='r'){
-           if(istruzione.p1>rSTACKLIM) istruzione.p1=(rSTACKLIM);
-           istruzione=undocontrol(fp,Array,Temp,istruzione,istruzione.p1*-1,dim);
+            if(istruzione.p1>rSTACKLIM) istruzione.p1=(rSTACKLIM);
+            istruzione=undocontrol(fp,Array,Temp,istruzione,istruzione.p1*-1,dim);
         }
 
 
